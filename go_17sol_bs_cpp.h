@@ -195,7 +195,7 @@ void G17B::Start() {// processing an entry
 	p_cpt2g[0] ++;
 	p_cpt2g[1] += genb12.nband3;
 	nb3_not_found = genb12.nband3;
-	if (op.ton || op.opcode==10 ) {
+	if (op.f4 || op.opcode==10 || op.opcode == 79) {
 		cout << myband2.band << " nband3=" << genb12.nband3 <<" slice "<< (genb12.nb12>>6) << endl;
 		if (op.ton > 1 || op.opcode == 10) {
 			for (int i = 0; i < genb12.nband3; i++)
@@ -1283,8 +1283,7 @@ void GUAH54N::GetG2G3_11() {
 //================================  start expand UAs bands 1+2
 
 int G17B::IsValid7pbf(uint64_t bf) {
-	//if ( (op.f4 == p_cpt2g[4])) 
-		cout << Char54out(bf) << " check valid " << _popcnt64(bf) << endl;;
+	if ( op.f4 ) 	cout << Char54out(bf) << " check valid " << _popcnt64(bf) << endl;;
 	
 	if (zh2b[1].IsValid(bf)) {
 		anduab12 = ~0;
@@ -1370,7 +1369,7 @@ int G17B::Debugk(int ncl, int opt ) {
 		break;
 	case 6:
 		if (bf_clt[5] & pk54n)return 1;
-		cout << Char54out(bf_clt[5]) << " expected 6 clues known" << endl;
+		cout << Char54out(bf_clt[5]) << " expected 6 clues known [4]"<< p_cpt2g[4] << endl;
 		break;
 	case 7:
 		if (bf_clt[6] & pk54n)return 1;
@@ -1391,7 +1390,7 @@ int G17B::Debugk(int ncl, int opt ) {
 		break;
 	case 20:
 		if (myb12 & pk54n)return 1;
-		cout << Char54out(myb12) << " expected b12 known" << endl;
+		cout << Char54out(myb12) << " expected b12 known [7]" << p_cpt2g[7] << endl;
 		break;
 	}
 
@@ -2186,9 +2185,8 @@ void G17B::Expand6() {
 			//cout << Char54out(ac_clt[5]) << " ac 6" << endl;
 			//cout << Char54out(ua_t[6]) << " ua for 7" << endl;
 		}
-
-		Ac_px_6clues(ac_clt[5], bf_clt[5]);
-
+		ac_clt[6] = ac_clt[5];
+		Ac_px_6clues(ac_clt[6], bf_clt[5]);
 		bbb54.Init(ac_clt[5]);// init pick up and set active
 		for (uint32_t i = 0; i <= t54b12.nbblocs; i++) {// set all vectors
 			T54B12::TUVECT& vv = t54b12.tb128[i];
@@ -2219,7 +2217,7 @@ void G17B::Expand7() {
 	if (aigstop) return;
 	int locdiag = 0;
 	if (op.f4 && (op.f4 < p_cpt2g[4])) { aigstop = 1; return; }
-	if (op.f4 == p_cpt2g[4] && op.ton) {
+	if (op.f4 == p_cpt2g[4] || op.opcode==10) {
 		cout << Char54out(bf_clt[5]) << " [4]" << p_cpt2g[4] << endl;
 		if (op.ton > 1)		
 			t54b12.DebugC();
@@ -2232,9 +2230,11 @@ void G17B::Expand7() {
 
 	T54B12::TUVECT& tuv128 = t54b12.tc128[0];
 	uint64_t* twu = tuv128.t;
-	ac_clt[6] = ac_clt[5];
 	ua_t[6] = twu[0];
-	if (locdiag) cout << Char54out(ua_t[6]) << " ua for 7" << endl;
+	if (locdiag) {
+		cout << Char54out(ua_t[6]) << " ua for 7" << endl;
+		cout << Char54out(ac_clt[6]) << "active ac_clt[6] start " << endl;
+	}
 	while (bitscanforward64(cl_t[6], ua_t[6])) {
 		{NEWCLUE(5, 6)}
 		if (locdiag)cout << Char54out(bf_clt[6]) << " next 7 clues" << endl;
@@ -2317,7 +2317,7 @@ void G17B::Expand8() {
 			if (IsValid7pbf(bf_clt[7])) {
 				Expand_9_to_10();	continue;// fresh uas are in tu8				
 			}
-			Valid7(); continue;// we have a valid 8
+			Valid8(); continue;// we have a valid 8
 		}
 		if (locdiag) 	cout << Char54out(ac_clt[7]) << "active 8" << endl;
 		//bbb54.DumpOut();		
@@ -2368,13 +2368,13 @@ void G17B::Expand9() {
 	if (Debugk(8))return;
 	if (aigstop) return;
 	int locdiag = 0;
-	if (op.f4 == p_cpt2g[4] && op.ton) {
+	if (op.f4 == p_cpt2g[4] || op.opcode==10 ) {
 		cout << Char54out(bf_clt[7]) << " 8 clues entry expand 9" << endl;
+		locdiag = 1;
 	}
-
 	while (bitscanforward64(cl_t[8], ua_t[8])) {
 		{NEWCLUE(7, 8)}
-		if (Debugk(9))return;
+		if (Debugk(9))continue;
 		p_cpt2g[70]	++;
 		ac_clt[9] = ac_clt[8];
 		Ac_px_9clues(ac_clt[9], bf_clt[8]);
@@ -2384,37 +2384,36 @@ void G17B::Expand9() {
 			register uint64_t U = bbb54.GetAndC(ac_clt[9],vc_t[2]);
 			if (!U ) continue;
 			if (!(~U)) {// potential valid 9
-				cout << Char54out(bf_clt[8]) << "no more uas potential 9 clues" << endl;
+				if (op.f4)cout << Char54out(bf_clt[8]) << "no more uas potential 9 clues" << endl;
 				ntu9 = 0;
-				if (IsValid7pbf(bf_clt[8])) {
-					// fresh uas are in tu8
+				if (IsValid7pbf(bf_clt[8])) {	// fresh uas are in tu8
 					U = anduab12 & ac_clt[8];
-					cout << Char54out(U) << "not 9 clues new and" << endl;
-					Table54Dump(tu9, ntu9);
+					if (locdiag) {
+						cout << Char54out(U) << "not 9 clues new and" << endl;
+						Table54Dump(tu9, ntu9);
+					}
 					if(!U )continue;
 				}
 				else {
-					cout << "valid 9 to do" << endl;
-					// we have a valid 9
-					continue;
+					if (locdiag)cout << "valid 9 to do" << endl;
+					Valid9();continue;
 				}
-
 			}
-
 			ua_t[9] =U;
 		}
 		if (locdiag) {
 			cout << Char54out(bf_clt[8]) << " 9 clues [70] "<< p_cpt2g[70] << endl;
 			cout << Char54out(ac_clt[9]) << " active  for 10 " << endl;
-
+			cout << Char54out(ua_t[9]) << " ua  for 10 " << endl;
 		}
 		p_cpt2g[71]	++;
 		guah54n.Build9last();
 		while (bitscanforward64(cl_t[9], ua_t[9])) {
 			{NEWCLUE(8, 9)}
-			if (Debugk(10))return;
+			if (locdiag) 		cout << Char54out(bf_clt[9]) << " 10 clues  " << endl;
+			if (Debugk(10))continue;
 			if (locdiag) {
-				cout << Char54out(bf_clt[9]) << " 10 clues  "  << endl;
+				cout << Char54out(bf_clt[9]) << " 10 clues ok "  << endl;
 				cout << Char54out(ac_clt[9]) << " active  now " << endl;
 
 			}
@@ -2526,9 +2525,7 @@ void G17B::Expand_9_to_10() {
 			}
 			else {
 				cout << "  valid 9" << endl;
-				// this is a valid 9
-				continue;
-
+				Valid9();	continue;
 			}
 		}
 		p_cpt2g[46]++;
@@ -2554,7 +2551,7 @@ void G17B::Expand_9_to_10() {
 
 
 void G17B::Valid7() {
-	return; // not ready
+	if (Debugk(7))return;
 	myb12 = bf_clt[6];
 	guah54n.GetG2G3_7();// try 7
 	CALLB3(7, 10);
@@ -2578,6 +2575,7 @@ void G17B::Valid8() {
 	}
 }
 void G17B::Valid9() {
+	if (Debugk(9))return;
 	guah54n.Build9();
 	myb12 = bf_clt[8];
 	guah54n.GetG2G3_9();// try direct
@@ -2599,11 +2597,7 @@ void G17B::Valid9() {
 	}
 }
 void G17B::Valid10() {
-	if (op.opcode == 10) {
-		if (bf_clt[9] & pk54n)return;
-		cout << " expected valid 10 clues for a known puzzle" << endl;
-		cout << Char54out(bf_clt[9]) << " bf_cl10" << endl;
-	}
+	if (Debugk(10))return;
 	myb12 = bf_clt[9];
 	if (op.p1) {
 		guah54n.GetG2G3_10last();
@@ -2678,15 +2672,12 @@ void G17B::GoCallB3Com() {
 		register uint64_t F = myb12;
 		for(uint32_t i=0;i<ntumore;i++)	if(! (tumore[i] & F)) return;
 	}
+	if (Debugk(20))return;
 	p_cpt2g[7]++;
 	p_cpt2g[80]+= guah54n.ntg2;
 	if(op.f4== p_cpt2g[4])cout << Char54out(bf_clt[9]) << " 10 clues [4] " << p_cpt2g[4]
 		<< "  [7] " << p_cpt2g[7]<< " ntg2 " << guah54n.ntg2 <<" "
 		<< p_cpt2g[80] << endl;
-
-	VerifyValidb3();
-	return;
-	if (op.opcode == 10) cout << "entry GoCallB3Com guah54n.ntg2"<< guah54n.ntg2 << endl;
 	tcluesxpdone = 0;
 	guah54n.InitCom();//open the door for g2 g3 seen later 
 	int tb3[512], ntb3 = 0;
@@ -2773,10 +2764,9 @@ void STD_B3::GoAg23(int debug) {
 }
 void STD_B3::GoA() {
 	p_cpt2g[8]++;
-	if (0) {
+	if (op.f7== p_cpt2g[7]) 
 		cout << band << " Goa   min " << minc << " [8] " << p_cpt2g[8] << endl;
-		return;
-	}
+	
 	g17b.nt3more = 0;
 	if (op.opcode == 10) cout  << " Goa   min " << minc << endl;
 
@@ -2841,10 +2831,9 @@ void STD_B3::GoA() {
 			xq.t2b[xq.n2b++] = mask;
 		}
 	}
-
 	if (op.opcode == 10 && op.ton>1) 	xq.Dump1(); 
 	p_cpt2g[9]++;
-	return;
+	if (op.f7 == p_cpt2g[7])xq.Dump1();
 	if (!xq.nmiss) { GoB0(); return; }
 	if (xq.nmiss == 1) { GoB1(); return; }
 	GoBMore1();
@@ -3415,9 +3404,11 @@ int G17B::IsValid_myb12() {
 				cout << Char54out(ua54) << " seen add b12 size " << cc << endl;
 				aigstop = 1; cout << " stop uab12<12" << endl; return 1;
 			}
-			if(op.f4)cout << Char54out(ua54) << " fresh b12 ntumore "<< ntumore << " [4] " << p_cpt2g[4] << endl;
+			if(op.f4)cout << Char54out(ua54) << " fresh b12 ntumore "<< ntumore 
+				<< " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << endl;
 			if (ntumore < MAXMORE)tumore[ntumore++]= ua54;
 			if (cc < 22) {
+				//cout << Char54out(ua54) << " fresh b12  [4] " << p_cpt2g[4] << endl;
 				t54b12.AddA(ua54);	t54b12.AddB(ua54);	t54b12.AddC(ua54);
 			}
 		}
@@ -3428,7 +3419,8 @@ int G17B::IsValid_myb12() {
 }
 uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 	p_cpt2g[31]++;
-	//cout << Char27out(bf) << "check b3 [31]"<< p_cpt2g[31] << endl;
+	if(op.f4== p_cpt2g[4])cout << Char27out(bf) << "check b3 [31]"<< p_cpt2g[31]
+		<< " [4] " << p_cpt2g[4] << " [7] " << p_cpt2g[7] << " nt3more="<<nt3more << endl;
 	if (nt3more) {
 		for (uint32_t i = 0; i < nt3more; i++)if (bf == t3more[i]) return t3more[i];
 	}
@@ -3473,7 +3465,6 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 								int n = guah54n.zz[iz].n;
 							}
 							guah54n.AddA2(U, i81,(int)cc0);
-							guah54n.g2.setBit(i81);
 							p_cpt2g[20]++;
 							continue;
 						}
@@ -3486,15 +3477,14 @@ uint32_t G17B::IsValidB3(uint32_t bf,int debug) {
 
 				else {
 					if (cc == 2) {
+						if (op.f4 == p_cpt2g[4])cout << Char27out(ua) <<" ad uag2" << endl;
 						int i81 = myband3->GetI81_2(w.bf.u32[2]);
 						guah54n.AddA2(U, i81,(int)cc0);
-						guah54n.g2.setBit(i81);
 						p_cpt2g[20]++;
 					}
 					else  {
 						int i81 = myband3->GetI81_3(w.bf.u32[2]);						
 						guah54n.AddA3(U, i81);
-						guah54n.g3.setBit(i81);
 						p_cpt2g[21]++;
 					}
 				}

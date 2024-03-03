@@ -161,7 +161,7 @@ int GEN_BANDES_12::ValidBand2() {
 			if (w == 0) {
 				long tfin = GetTimeMillis();
 				if ((w1 > op.last)) return 1;
-				//if(0)
+				if(op.opcode!=79)
 				cout << "new slice =\t" << w1 << "\tmil=" << (tfin - sgo.tdeb) / 1000
 					<< "\tnb2=" << p_cpt2g[0] << "\tnb3=" << p_cpt2g[1] << endl;
 			}

@@ -108,19 +108,10 @@ struct OPCOMMAND {// decoding command line option for this rpocess
 	}
 	void SetUp79() {// init 
 		memset(this, 0, sizeof * this);
-		opcode = 0;
+		opcode = 79;
 	}
 }op;
 #define UACNBLOCS 15
-//___ expand uas in bands 1+2
-struct SPB03A {// spots 6 first clues
-	BF128 v;	
-	uint64_t  possible_cells, all_previous_cells, active_cells;
-};
-struct SPB03B {// spots 6 first clues
-	BF128 v[UACNBLOCS];
-	uint64_t  possible_cells, all_previous_cells, active_cells;
-};
 // expand uas in band 3
 struct SP3 {
 	uint32_t  possible_cells, all_previous, active,
@@ -651,13 +642,23 @@ struct GUAH54N {
 		}
 	}
 
-	inline void AddA2(uint64_t bf, uint64_t i81,int cc12){
-		if (ngtul < GTULSIZE) gtul[ngtul++] = bf | i81 << 54;
+	inline void AddA2(uint64_t bf, int i81,int cc12){
+		if (ngtul < GTULSIZE) gtul[ngtul++] = bf |(uint64_t) i81 << 54;
+		if (g2.Off(i81)) {
+			tmg2[ntmg2++] = i81;
+			g2.setBit(i81);
+			if(ntg2<90)tg2[ntg2++] = i81;
+		}
 		register Z128& mz = zz[indg2[i81]];
 		if (mz.n < 128) mz.EnterFresh(bf);
 	}
-	inline void AddA3(uint64_t bf, uint64_t  i81) {
-		if (ngtul < GTULSIZE) gtul[ngtul++] = bf | (i81+100) << 54;
+	inline void AddA3(uint64_t bf, int  i81) {
+		if (ngtul < GTULSIZE) gtul[ngtul++] = bf | (uint64_t)(i81+100) << 54;
+		if (g3.Off(i81)) {
+			tmg3[ntmg3++] = i81;
+			g3.setBit(i81);
+			if (ntg3 < 90)tg3[ntg3++] = i81;
+		}
 		register Z128& mz= zz[indg3[i81]];
 		if (mz.n< 128) mz.EnterFresh(bf);
 	}
