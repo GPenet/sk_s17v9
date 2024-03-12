@@ -1523,11 +1523,7 @@ inline uint64_t PackGetAnd(uint64_t bf, uint64_t active, uint64_t* tin, uint32_t
 int DisjointsSize5(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5], int locdiag = 0) {
 	uint32_t l1 = ntin, l2 = ntin, l3 = ntin;
 	register uint64_t Ac = active;
-	uint64_t min_count = _popcnt64(Ac);
 	for (uint32_t i1 = 0; i1 < l1; i1++) {
-		g17b.min_disjoint = active;
-		g17b.and_disjoint = active;
-		g17b.or_disjoint = 0;
 		register uint64_t U1 = tin[i1];
 		for (uint32_t i2 = i1 + 1; i2 < l2; i2++) {
 			register uint64_t U2 = tin[i2];
@@ -1549,16 +1545,6 @@ int DisjointsSize5(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5]
 					register uint64_t uo4 = uo3 | U4;
 					nsizex[2]++;
 					if (l3 > 20)l1 = 20;
-					{// check min disjoint size -1
-						g17b.or_disjoint |= uo4;
-						g17b.and_disjoint &= uo4;
-						register uint64_t min_count2 = _popcnt64(uo4);
-						if (min_count2 < min_count) {
-							g17b.min_disjoint = uo4;
-							min_count = min_count2;
-						}
-
-					}
 					// here 5 disjoints is critical
 					register uint64_t wa = ~0;
 					for (uint32_t i5 = i4 + 1; i5 < ntin; i5++) {
@@ -1583,10 +1569,6 @@ int DisjointsSize5(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5]
 int DisjointsSize4(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5], int locdiag = 0) {
 	uint32_t l1 = ntin, l2 = ntin, l3 = ntin;
 	register uint64_t Ac = active;
-	g17b.min_disjoint = active;
-	g17b.and_disjoint = active;
-	g17b.or_disjoint = 0;
-	uint64_t min_count = _popcnt64(Ac);
 	for (uint32_t i1 = 0; i1 < l1; i1++) {
 		register uint64_t U1 = tin[i1];
 		for (uint32_t i2 = i1 + 1; i2 < l2; i2++) {
@@ -1603,16 +1585,6 @@ int DisjointsSize4(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5]
 				nsizex[1]++;
 				if (l2 > 15)l2 = 15;
 				if (locdiag ) cout << " dis3 " << i1 << " " << i2 << " " << i3 << endl;
-				{// check min disjoint size -1
-					g17b.or_disjoint |= uo3;
-					g17b.and_disjoint &= uo3;
-					register uint64_t min_count2 = _popcnt64(uo3);
-					if (min_count2 < min_count) {
-						g17b.min_disjoint = uo3;
-						min_count = min_count2;
-					}
-
-				}
 				// here 4 disjoints is critical
 				register uint64_t wa = ~0;
 				for (uint32_t i4 = i3 + 1; i4 < ntin; i4++) {
@@ -1637,10 +1609,6 @@ int DisjointsSize4(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5]
 int DisjointsSize3(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5], int locdiag = 0) {
 	uint32_t l1 = ntin, l2 = ntin;
 	register uint64_t Ac = active;
-	g17b.min_disjoint = active;
-	g17b.and_disjoint = active;
-	g17b.or_disjoint = 0;
-	uint64_t min_count = _popcnt64(Ac);
 	for (uint32_t i1 = 0; i1 < l1; i1++) {
 		register uint64_t U1 = tin[i1];
 		for (uint32_t i2 = i1 + 1; i2 < l2; i2++) {
@@ -1650,16 +1618,6 @@ int DisjointsSize3(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5]
 			nsizex[0]++;
 			if (l1 > 10)l1 = 10;
 			if (locdiag>1) cout << "dis2 " << i1 << " " << i2 << endl;
-			{// check min disjoint size -1
-				g17b.or_disjoint |= uo2;
-				g17b.and_disjoint &= uo2;
-				register uint64_t min_count2 = _popcnt64(uo2);
-				if (min_count2 < min_count) {
-					g17b.min_disjoint = uo2;
-					min_count = min_count2;
-				}
-
-			}
 			register uint64_t wa = ~0;
 			for (uint32_t i3 = i2 + 1; i3 < ntin; i3++) {
 				register uint64_t U3 = tin[i3];
@@ -1707,6 +1665,75 @@ int DisjointsSize2(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5]
 			Ac &= wa | U1;
 			nsizex[0]++;
 			if (!Ac) return 2;
+		}
+	}
+	active = Ac;
+	return 0;
+}
+int DisjointsSize3B(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5], int locdiag = 0) {
+	uint32_t l1 = ntin, l2 = ntin;
+	register uint64_t Ac = active, na = _popcnt64(Ac);
+	for (uint32_t i1 = 0; i1 < l1; i1++) {
+		register uint64_t U1 = tin[i1] &Ac;
+		for (uint32_t i2 = i1 + 1; i2 < l2; i2++) {
+			register uint64_t U2 = tin[i2];
+			if (U1 & U2) continue;
+			U2 &= Ac;		if (!U2) return 2;
+			register uint64_t uo2 = U1 | U2;
+			nsizex[0]++;
+			if (l1 > 10)l1 = 10;
+			if (locdiag > 1) cout << "dis2 " << i1 << " " << i2 << endl;
+			register uint64_t wa = ~0;
+			for (uint32_t i3 = i2 + 1; i3 < ntin; i3++) {
+				register uint64_t U3 = tin[i3];
+				if (uo2 & U3) continue;
+				U3 &= Ac;		if (!U3) return 2;
+				register uint64_t uo3 = uo2 | U3;
+				if (l2 > 15)l2 = 15;
+				if (locdiag) cout << Char54out(uo3)
+					<< "dis3 " << i1 << " " << i2 << " " << i3 << endl;
+				// here 3 disjoints is critical
+				wa &= U3;
+				if (!wa) return 1;//dead more 3	
+			}
+			if (wa != ~0) {// this is a critical disjoint
+				Ac &= wa | uo2;
+				nsizex[1]++;
+				if (!Ac) return 2;
+				if (locdiag) cout << Char54out(Ac) << " new Ac " << endl;
+			}
+		}
+	}
+	active = Ac;
+	return 0;
+}
+int DisjointsSize2B(uint64_t& active, uint64_t* tin, uint32_t ntin, int nsizex[5], int locdiag = 0) {
+	uint32_t l1 = ntin - 1;
+	register uint64_t Ac = active,na=_popcnt64(Ac);
+	for (uint32_t i1 = 0; i1 < l1; i1++) {
+		register uint64_t U1 = tin[i1]&Ac;
+		if (!U1) return 2;
+		register uint64_t wa = ~0;
+		for (uint32_t i2 = i1 + 1; i2 < ntin; i2++) {
+			register uint64_t U2 = tin[i2];
+			if (U1 & U2) continue;
+			U2 &= Ac;			if (!U2) return 2;
+
+			register uint64_t uo2 = U1 | U2;
+			if (locdiag) cout << "dis2 " << i1 << " " << i2 << endl;
+			wa &= U2;
+			if (!wa) return 1;//dead  2	
+			for (uint32_t i3 = i2 + 1; i3 < ntin; i3++) {
+				register uint64_t U3 = tin[i3];
+				if (!(uo2 & U3))return 1;// more than 2 disjoints or dead shkrink
+			}
+		}
+		if (wa != ~0) {// this is a critical disjoint
+			Ac &= wa | U1;
+			nsizex[0]++;
+			if (!Ac) return 2;
+			if (locdiag) cout <<Char54out(Ac)<< " new Ac "  << endl;
+
 		}
 	}
 	active = Ac;
@@ -1854,7 +1881,7 @@ struct BUILD {
 		return 0;
 	}
 	int Dead() { return npersize[0]; }
-	int Build_uout() {
+	uint32_t Build_uout() {
 		nuout = 0;
 		uint32_t x;
 		while (bitscanforward(x, vpersize)) {
@@ -1878,7 +1905,7 @@ struct BUILD {
 		}
 		return nuout;
 	}
-	int GetBuildC(uint64_t active, BF128* vx, uint32_t lim);
+	uint32_t GetBuildC(uint64_t active, BF128* vx, uint32_t lim);
 	uint64_t GetAndC(uint64_t active, BF128* vx);
 
 	void CutToSize(uint64_t siz) {
@@ -1903,7 +1930,7 @@ struct BUILD {
 	}
 
 }bbb54;
-int BUILD::GetBuildC(uint64_t active, BF128* vx, uint32_t lim) {
+uint32_t BUILD::GetBuildC(uint64_t active, BF128* vx, uint32_t lim) {
 	Init(active);
 	for (uint32_t i = 0; i <= t54b12.ncblocs; i++) {// set all vectors
 		T54B12::TUVECT& vv = t54b12.tc128[i];
@@ -1913,7 +1940,8 @@ int BUILD::GetBuildC(uint64_t active, BF128* vx, uint32_t lim) {
 		if (nuat > lim) break;
 	}
 	if (Dead()) return -1;
-	return Build_uout();
+	if (Build_uout() > lim) nuout = lim;;
+	return nuout;
 }
 uint64_t BUILD::GetAndC(uint64_t active, BF128* vx) {
 	ac = active; wand = ~0;
@@ -2242,7 +2270,7 @@ void G17B::Expand7() {
 		ac_clt[7] = ac_clt[6];
 		Ac_px_7clues(ac_clt[7], bf_clt[6]);// apply filter 7 clues
 		t54b12.AddVect7(cl_t[6], vc_t[0]);
-		int nuout = bbb54.GetBuildC(ac_clt[7], vc_t[0], 50);
+		int nuout = bbb54.GetBuildC(ac_clt[7], vc_t[0], 30);
 		if (nuout < 0) continue;	
 		ntu7 = 0;
 		if (!nuout) {
@@ -2253,24 +2281,33 @@ void G17B::Expand7() {
 			Valid7(); continue;// we have a valid 7			
 		}
 		if (locdiag) 	cout << Char54out(ac_clt[6]) << "active" << endl;
-		//bbb54.DumpOut();
-		bbb54.CutToSize(13);
 		int nsizea[5] = { 0,0,0,0,0 };
 		uint64_t ac0 = ac_clt[6];
-		if (DisjointsSize3(ac0, bbb54.uout, bbb54.nuout,nsizea,locdiag)) continue;		
-		if (locdiag) 	cout << Char54out(ac0) << "active end "<< nsizea[1] << endl;		
+		{
+			uint64_t na = _popcnt64(ac_clt[6]);
+			if (locdiag) cout << na << " active " << " limit 32 to ook for" << endl;
+			if (na <= 32) {//54-7clues-15dead to look for early backtracking
+				//bbb54.DumpOut();
+				bbb54.CutToSize(na/3);
+				if (DisjointsSize3B(ac0, bbb54.uout, bbb54.nuout, nsizea, locdiag)) continue;
+				if (locdiag) 	cout << Char54out(ac0) << "active end " << nsizea[1] << endl;
+
+			}
+		}
 		p_cpt2g[53]	++;
-		if (nsizea[1] && ac0!= ac_clt[6]) { Expand7crit(ac0); continue; }
+		if (nsizea[1] && ac0!= ac_clt[6]) {
+			if (locdiag)bbb54.DumpOut();
+			Expand7crit(ac0); continue; }
 		p_cpt2g[54]	++;
 		ua_t[7] = bbb54.uout[0];
 		Expand8();		if (aigstop) return;
 	}
 }
-void G17B::Expand7crit(uint64_t ac0) {
+void G17B::Expand7crit(uint64_t ac0){
 	p_cpt2g[55]	++;
 	int locdiag = 0;
 	if (op.f4 == p_cpt2g[4] && op.ton) {
-		cout << Char54out(bf_clt[6]) << " 7 crit "  << endl;
+		cout << Char54out(bf_clt[6]) << " 7 crit " << endl;
 		locdiag = 1;
 	}
 	int nuout = bbb54.GetBuildC(ac0, vc_t[0], 1000);
@@ -2290,6 +2327,10 @@ void G17B::Expand7crit(uint64_t ac0) {
 	ntu7 = bbb54.CopyTo(tu7, MAX7);
 	ac_clt[7] = ac2;
 	if (ntu7)Expand_8();// should always be
+	else {
+		cout << "ntu7=0 [4]" << p_cpt2g[4] << "  [56]" << p_cpt2g[56] << endl;
+		bbb54.DumpOut();
+	}
 
 }
 
@@ -2319,13 +2360,23 @@ void G17B::Expand8() {
 			}
 			Valid8(); continue;// we have a valid 8
 		}
-		if (locdiag) 	cout << Char54out(ac_clt[7]) << "active 8" << endl;
-		//bbb54.DumpOut();		
-		bbb54.CutToSize(12);
 		int nsizea[5] = { 0,0,0,0,0 };
-		uint64_t ac0 = ac_clt[7];
-		if (DisjointsSize2(ac0, bbb54.uout, bbb54.nuout,
-			nsizea,locdiag)) continue;		
+		uint64_t ac0 = ac_clt[7],na = _popcnt64(ac0);
+		if (locdiag) 	cout << Char54out(ac0) << "active 8 na=" <<na<< endl;
+		if (locdiag)bbb54.DumpOut();
+		bbb54.CutToSize(12);
+		if(0){
+			if (locdiag) cout << na << " active " << " limit 32 to look for" << endl;
+			if (na <= 32) {//54-7clues-15dead to look for early backtracking
+				//bbb54.DumpOut();
+				bbb54.CutToSize(na / 3);
+				if (DisjointsSize3(ac0, bbb54.uout, bbb54.nuout, nsizea, locdiag)) continue;
+				if (locdiag) 	cout << Char54out(ac0) << "active end " << nsizea[1] << endl;
+
+			}
+		}
+
+		if (DisjointsSize2B(ac0, bbb54.uout, bbb54.nuout,	nsizea,locdiag)) continue;		
 		p_cpt2g[61]	++;
 		if (locdiag) 	cout << Char54out(ac0) << "active end " << nsizea[0] << endl;
 		if (nsizea[0] && ac0 != ac_clt[7]) { Expand8crit(ac0); continue; }

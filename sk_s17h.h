@@ -1706,7 +1706,7 @@ struct GEN_BANDES_12 {// encapsulating global data
 // main process 
 // limits for tables of UAs
 #define MAX6 300
-#define MAX7 200
+#define MAX7 300
 #define MAX8 200
 #define MAX9 100
 #define MAX10 50
@@ -1744,7 +1744,7 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 		, vc_t[3][UABNBLOCS];
 	uint64_t ua_t[12], bf_clt[12], ac_clt[12], and_t[12];
 	uint32_t cl_t[12];
-	uint64_t and_6, and_7,and_8, and_9, and_10, min_disjoint, or_disjoint,and_disjoint;
+	uint64_t and_6, and_7,and_8, and_9, and_10;
 	uint32_t	tcluesxp[20],// to access guam
 		 tc_7_9[5],// 5 for expand 7 11 
 		tc_10_12[3];
