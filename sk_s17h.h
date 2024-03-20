@@ -1719,7 +1719,16 @@ struct G17B {// hosting the search in 6 6 5 mode combining bands solutions
 
 	int b3lim,	 aigstop, aigstopxy,nb3_not_found,knownt,
 		npuz, a_17_found_here ;
+
+	//===== redundancy control count per band
 	int  b1maxcl, b2maxcl, b2maxcl11;
+
+	void Init17p1();
+	void Init17p2();
+	void Init18p1();
+	void Init18p2();
+
+
 	int ng2,ng3;
 	int grid0[81];
 
